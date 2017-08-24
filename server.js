@@ -75,7 +75,7 @@ app.get('/articles/add', (req, res) => {
 // Get Single Article
 // when catching /:placeholderName we should be careful because it will catch everything whose path mathes until the :
 // and consider everything after the : as matching its path( /article/* is a match)
-app.get('/article/:id', (req, res) => {
+app.get('/articles/:id', (req, res) => {
     // we use the model here
     Article.findById(req.params.id, (err, article) => {
         if (err) {
@@ -98,6 +98,40 @@ app.post('/articles/add', (req, res) => {
     article.body = req.body.body;
 
     article.save((err) => {
+        if (err) {
+            console.log(err);
+            return;
+        } else {
+            res.redirect('/');
+        }
+    })
+});
+
+// Load edit form
+app.get('/articles/edit/:id', (req, res) => {
+    // we use the model here
+    Article.findById(req.params.id, (err, article) => {
+        if (err) {
+            console.log(err);
+            return;
+        } else {
+            res.render('edit_article', {
+                title: 'Edit Article',
+                article: article
+            });
+        }
+    });
+});
+
+// Update submit
+app.post('/articles/edit/:id', (req, res) => {
+    let article = {};
+    article.title = req.body.title;
+    article.author = req.body.author;
+    article.body = req.body.body;
+
+    let query = {_id: req.params.id}
+    Article.update(query, article, (err) => {
         if (err) {
             console.log(err);
             return;
