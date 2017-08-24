@@ -33,10 +33,12 @@ app.set('view engine', 'pug');
 
 // body-parser middleware
 // parse application/x-www-form-urlencoded
-app.use(bodyParser.urlencoded({ extended: false }))
+app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 
+// set public folder, for static files
+app.use(express.static(path.join(__dirname, 'public')));
 
 // () => { } is equivalent to function() { }; introduced in the ES6 standard
 app.get('/', (req, res) => {
@@ -63,13 +65,32 @@ app.get('/', (req, res) => {
     // });
 });
 
+// Add Article Page
 app.get('/articles/add', (req, res) => {
     res.render('add_article', {
         title: "Add article"
     });
 });
 
+// Get Single Article
+// when catching /:placeholderName we should be careful because it will catch everything whose path mathes until the :
+// and consider everything after the : as matching its path( /article/* is a match)
+app.get('/article/:id', (req, res) => {
+    // we use the model here
+    Article.findById(req.params.id, (err, article) => {
+        if (err) {
+            console.log(err);
+            return;
+        } else {
+            res.render('article', {
+                article: article
+            });
+        }
+    });
+});
+
 //submit post route
+// everithing sending POST requests to /articles/add will be caught by this block of code
 app.post('/articles/add', (req, res) => {
     let article = new Article();
     article.title = req.body.title;
