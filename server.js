@@ -1,8 +1,27 @@
 const express = require('express');
 const path = require('path');
+const mongoose = require('mongoose');
+
+// connecting mongoose to our database
+// nkb is the name of the database we have set for this project
+mongoose.connect('mongodb://localhost/nkb');
+let db = mongoose.connection;
+
+// check connection
+db.once('open', () => {
+    console.log("Connected to MongoDB");
+});
+
+// check for db errors
+db.on('error', (error) => {
+    console.log(error);
+});
 
 // initializing app
 const app = express();
+
+// bring in models
+let Article = require('./models/article');
 
 // loading view engine
 // __dirname would be something like C:\Users\lvl\node\nodekb, and after path.join, \views will be added to that names
@@ -12,32 +31,27 @@ app.set('view engine', 'pug');
 
 // () => { } is equivalent to function() { }; introduced in the ES6 standard
 app.get('/', (req, res) => {
-    let articles = [
-        {
-            id: 1,
-            title: "Article One",
-            author: "Brad",
-            body: "This is article one"
-        },
-        {
-            id: 2,
-            title: "Article Two",
-            author: "Jim",
-            body: "This is article two"
-        },
-        {
-            id: 3,
-            title: "Article Three",
-            author: "Megan",
-            body: "This is article Three"
+    // we use the Article variable we defined above
+    // empty {} as first argument to the find() function means find all
+    Article.find({}, (err, articles) => {
+        // checking if find() returned an error
+        if (err) {
+            console.log(err);
+        } else {
+            // rendering index.pug, passing query results as argument
+            res.render('index', {
+                title: "Articles",
+                articles: articles
+            });
         }
-    ];
 
-    // rendering the index.pug file
-    res.render('index', {
-        title: "Articles",
-        articles: articles
     });
+
+    // // rendering the index.pug file
+    // res.render('index', {
+    //     title: "Articles",
+    //     articles: articles
+    // });
 });
 
 app.get('/articles/add', (req, res) => {
