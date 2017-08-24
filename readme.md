@@ -10,4 +10,4 @@ Notes:
 * Created nkb collection inside mongodb
 * Created collection articles inside nkb and added test articles
 * Installed mongoose to help us work with mongodb
-
+* installed body-parser, so we can parse req.url

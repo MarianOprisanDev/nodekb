@@ -2,6 +2,8 @@ const express = require('express');
 const path = require('path');
 const mongoose = require('mongoose');
 
+const bodyParser = require('body-parser');
+
 // connecting mongoose to our database
 // nkb is the name of the database we have set for this project
 mongoose.connect('mongodb://localhost/nkb');
@@ -28,6 +30,13 @@ let Article = require('./models/article');
 app.set('views', path.join(__dirname, 'views'));
 // setting pug as the view engine
 app.set('view engine', 'pug');
+
+// body-parser middleware
+// parse application/x-www-form-urlencoded
+app.use(bodyParser.urlencoded({ extended: false }))
+// parse application/json
+app.use(bodyParser.json())
+
 
 // () => { } is equivalent to function() { }; introduced in the ES6 standard
 app.get('/', (req, res) => {
@@ -58,6 +67,23 @@ app.get('/articles/add', (req, res) => {
     res.render('add_article', {
         title: "Add article"
     });
+});
+
+//submit post route
+app.post('/articles/add', (req, res) => {
+    let article = new Article();
+    article.title = req.body.title;
+    article.author = req.body.author;
+    article.body = req.body.body;
+
+    article.save((err) => {
+        if (err) {
+            console.log(err);
+            return;
+        } else {
+            res.redirect('/');
+        }
+    })
 });
 
 // Start server
