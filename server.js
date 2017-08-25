@@ -3,6 +3,9 @@ const path = require('path');
 const mongoose = require('mongoose');
 
 const bodyParser = require('body-parser');
+const expressValidator = require('express-validator');
+const flash = require('connect-flash');
+const session = require('express-session');
 
 // connecting mongoose to our database
 // nkb is the name of the database we have set for this project
@@ -36,9 +39,41 @@ app.set('view engine', 'pug');
 app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 app.use(bodyParser.json());
-
 // set public folder, for static files
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Express Messages Middleware
+app.use(require('connect-flash')());
+app.use(function (req, res, next) {
+  // setting a global variable named messages to the module express-messages
+  res.locals.messages = require('express-messages')(req, res);
+  next();
+});
+
+// Express Session Middleware
+app.use(session({
+    secret: 'keyboard cat',
+    resave: true,
+    saveUninitialized: true,
+}));
+
+// Express Validator Middleware
+app.use(expressValidator({
+  errorFormatter: function(param, msg, value) {
+      var namespace = param.split('.')
+      , root    = namespace.shift()
+      , formParam = root;
+
+    while(namespace.length) {
+      formParam += '[' + namespace.shift() + ']';
+    }
+    return {
+      param : formParam,
+      msg   : msg,
+      value : value
+    };
+  }
+}));
 
 // () => { } is equivalent to function() { }; introduced in the ES6 standard
 app.get('/', (req, res) => {
@@ -65,94 +100,10 @@ app.get('/', (req, res) => {
     // });
 });
 
-// Add Article Page
-app.get('/articles/add', (req, res) => {
-    res.render('add_article', {
-        title: "Add article"
-    });
-});
+// Route Files
+let articles = require('./routes/articles');
+app.use('/articles', articles);
 
-// Get Single Article
-// when catching /:placeholderName we should be careful because it will catch everything whose path mathes until the :
-// and consider everything after the : as matching its path( /article/* is a match)
-app.get('/articles/:id', (req, res) => {
-    // we use the model here
-    Article.findById(req.params.id, (err, article) => {
-        if (err) {
-            console.log(err);
-            return;
-        } else {
-            res.render('article', {
-                article: article
-            });
-        }
-    });
-});
-
-//submit post route
-// everithing sending POST requests to /articles/add will be caught by this block of code
-app.post('/articles/add', (req, res) => {
-    let article = new Article();
-    article.title = req.body.title;
-    article.author = req.body.author;
-    article.body = req.body.body;
-
-    article.save((err) => {
-        if (err) {
-            console.log(err);
-            return;
-        } else {
-            res.redirect('/');
-        }
-    })
-});
-
-// Load edit form
-app.get('/articles/edit/:id', (req, res) => {
-    // we use the model here
-    Article.findById(req.params.id, (err, article) => {
-        if (err) {
-            console.log(err);
-            return;
-        } else {
-            res.render('edit_article', {
-                title: 'Edit Article',
-                article: article
-            });
-        }
-    });
-});
-
-// Update submit
-app.post('/articles/edit/:id', (req, res) => {
-    let article = {};
-    article.title = req.body.title;
-    article.author = req.body.author;
-    article.body = req.body.body;
-
-    let query = {_id: req.params.id}
-    Article.update(query, article, (err) => {
-        if (err) {
-            console.log(err);
-            return;
-        } else {
-            res.redirect('/');
-        }
-    })
-});
-
-
-app.delete('/articles/:id', (req, res) => {
-    let query = {_id: req.params.id};
-
-    Article.remove(query, (err) => {
-        if(err) {
-            console.log(err);
-        }
-
-        res.send('Success');
-    });
-})
 // Start server
 app.listen(3000, () => {
     console.log('Server started on port 3000');

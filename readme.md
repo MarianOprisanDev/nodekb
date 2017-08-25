@@ -17,3 +17,7 @@ Notes:
 * To add bootstrap styles to our code we just add a link to bootstrap in our layout.pug file, setting its href to "/bower_components/bootstrap/dist/css/bootstrap.css".
 * To convert html markup to pug/jade code, we use the [jade to html](http://html2jade.org/) convertor
 * Using AJAX call to delete articles
+* Installed node-messages middleware together with connect-flash, to render us the ability to send flash messages
+* Also added express-session
+* Using express-validator to validate user input
+* 
