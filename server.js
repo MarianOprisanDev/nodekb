@@ -87,10 +87,8 @@ app.use(passport.session());
 app.get('*', function(req, res, next) {
     // we set a global variable user which will be null in case req.user does not exist, and if it doesn't, it will be null
     // req. user contains the user object, read from the database, and it contains all the info about the user
-    // this info persists until we reset the server
     res.locals.user = req.user || null;
     // we don't send a response, just let the app continue
-    console.log(' USER IS: ' + res.locals.user);
     next();
 })
 

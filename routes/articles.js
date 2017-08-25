@@ -2,10 +2,14 @@ const express = require('express');
 const router = express.Router();
 let Article = require('../models/article');
 
+const passport = require('passport');
+
 // Add Article Page
-router.get('/add', (req, res) => {
+// We do not add () to the ensureAuthenticated function
+router.get('/add', ensureAuthenticated, (req, res) => {
     res.render('add_article', {
-        title: "Add article"
+        title: "Add article",
+        user: res.locals.user
     });
 });
 
@@ -15,7 +19,7 @@ router.post('/add', (req, res) => {
     // the following validation code comes from express-validator
     // if notEmpty() returns false, the 'Title is required' error is returned
     req.checkBody('title', 'Title is required').notEmpty();
-    req.checkBody('author', 'Title is required').notEmpty();
+    //req.checkBody('author', 'Title is required').notEmpty();
     req.checkBody('body', 'Title is required').notEmpty();
 
     //get the errors
@@ -23,12 +27,14 @@ router.post('/add', (req, res) => {
     if(errors) {
         res.render('add_article', {
             title: 'Add Article',
-            errors: errors
+            errors: errors,
+            name: req.user.name
         });
     } else {
         let article = new Article();
         article.title = req.body.title;
-        article.author = req.body.author;
+        // different from the course, I use the name from the req.user object, as it is available 
+        article.author = req.user.name;
         article.body = req.body.body;
     
         article.save((err) => {
@@ -44,15 +50,20 @@ router.post('/add', (req, res) => {
 });
 
 // Load edit form
-router.get('/edit/:id', (req, res) => {
+router.get('/edit/:id', ensureAuthenticated, (req, res) => {
     // we use the model here
     Article.findById(req.params.id, (err, article) => {
+        if (article.author != req.user.name) {
+            req.flash('danger', 'Not authorized');
+            redirect('/');
+        }
         if (err) {
             console.log(err);
             return;
         } else {
             res.render('edit_article', {
                 title: 'Edit Article',
+                user: res.locals.user,
                 article: article
             });
         }
@@ -80,15 +91,24 @@ router.post('/edit/:id', (req, res) => {
 
 
 router.delete('/:id', (req, res) => {
-    let query = {_id: req.params.id};
-
-    Article.remove(query, (err) => {
-        if(err) {
-            console.log(err);
-        }
-
-        res.send('Success');
-    });
+    if (!req.user) {
+        res.status(500).send();
+    } else{
+        let query = {_id: req.params.id};
+        Article.findById(req.params.id, function(err, article) {
+            if (article.author != req.user.name) {
+                res.status(500).send();
+            } else {
+                Article.remove(query, (err) => {
+                    if(err) {
+                        console.log(err);
+                    }
+        
+                    res.send('Success');
+                });
+            }
+        })
+    }
 });
 
 // Get Single Article
@@ -102,10 +122,22 @@ router.get('/:id', (req, res) => {
             return;
         } else {
             res.render('article', {
-                article: article
+                article: article,
+                user: res.locals.user
             });
         }
     });
 });
+
+// Access Control
+// we will use this function on all routes that we want to protect from being accessed by unauthenticated users
+function ensureAuthenticated(req, res, next) {
+    if (req.isAuthenticated()) {
+        return next();
+    } else {
+        req.flash('danger', 'Please log in');
+        res.redirect('/users/login');
+    }
+}
 
 module.exports = router;

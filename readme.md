@@ -38,4 +38,4 @@ The config constant contains the object exported by the database.js file, and we
 mongoose.connect(config.database);
 ```
 We can import that object in any other file we might need it.
-
+* A great way to persist user data is through sessions, storing user data into a global variable, and then sending res.locals.user to every template we render
