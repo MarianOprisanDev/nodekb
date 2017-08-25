@@ -22,4 +22,20 @@ Notes:
 * Using express-validator to validate user input
 * Using Passport authentication middleware. Passport is a good choice because of the different strategies it offers. We can use a local strategy, which means we store the passwords inside a database, or we can log in with facebook or twitter credentials.
 * Installed passport, passport-local(using the local strategy), and bcryptjs(helps us hash passwords and then compare hashes).
+* Inside our project we create a config folder with a database.js containing: 
+```javascript
+module.exports = {
+    database: 'mongodb://localhost:27017/nkb',  // 27017 is the default port for mongo
+    secret: 'secret'
+}
+```
+This will allow us to use code such as:
+```javascript
+const config = require('./config/database.js');
+```
+The config constant contains the object exported by the database.js file, and we can access like any other object:
+```javascript
+mongoose.connect(config.database);
+```
+We can import that object in any other file we might need it.
 

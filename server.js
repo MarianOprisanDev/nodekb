@@ -6,10 +6,12 @@ const bodyParser = require('body-parser');
 const expressValidator = require('express-validator');
 const flash = require('connect-flash');
 const session = require('express-session');
+const config = require('./config/database');
+const passport = require('passport');
 
 // connecting mongoose to our database
 // nkb is the name of the database we have set for this project
-mongoose.connect('mongodb://localhost/nkb');
+mongoose.connect(config.database);
 let db = mongoose.connection;
 
 // check connection
@@ -74,6 +76,23 @@ app.use(expressValidator({
     };
   }
 }));
+
+// Passport Config
+require('./config/passport')(passport);
+// Passport Middleware
+app.use(passport.initialize());
+app.use(passport.session());
+
+// * applies to all routes
+app.get('*', function(req, res, next) {
+    // we set a global variable user which will be null in case req.user does not exist, and if it doesn't, it will be null
+    // req. user contains the user object, read from the database, and it contains all the info about the user
+    // this info persists until we reset the server
+    res.locals.user = req.user || null;
+    // we don't send a response, just let the app continue
+    console.log(' USER IS: ' + res.locals.user);
+    next();
+})
 
 // () => { } is equivalent to function() { }; introduced in the ES6 standard
 app.get('/', (req, res) => {
