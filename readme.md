@@ -20,4 +20,6 @@ Notes:
 * Installed node-messages middleware together with connect-flash, to render us the ability to send flash messages
 * Also added express-session
 * Using express-validator to validate user input
-* 
+* Using Passport authentication middleware. Passport is a good choice because of the different strategies it offers. We can use a local strategy, which means we store the passwords inside a database, or we can log in with facebook or twitter credentials.
+* Installed passport, passport-local(using the local strategy), and bcryptjs(helps us hash passwords and then compare hashes).
+
